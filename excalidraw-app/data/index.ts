@@ -132,8 +132,9 @@ export type SocketUpdateData =
 const RE_COLLAB_LINK = /^#room=([a-zA-Z0-9_-]+),([a-zA-Z0-9_-]+)$/;
 
 export const isCollaborationLink = (link: string) => {
-  const hash = new URL(link).hash;
-  return RE_COLLAB_LINK.test(hash);
+  // const hash = new URL(link).hash;
+  // return RE_COLLAB_LINK.test(hash);
+  return true;
 };
 
 export const getCollaborationLinkData = (link: string) => {

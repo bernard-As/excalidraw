@@ -78,10 +78,7 @@ import {
   saveFilesToFirebase,
   saveToFirebase,
 } from "../data/firebase";
-import {
-  importUsernameFromLocalStorage,
-  saveUsernameToLocalStorage,
-} from "../data/localStorage";
+import { saveUsernameToLocalStorage } from "../data/localStorage";
 import { resetBrowserStateVersions } from "../data/tabSync";
 
 import { collabErrorIndicatorAtom } from "./CollabError";
@@ -124,6 +121,7 @@ export interface CollabAPI {
 
 interface CollabProps {
   excalidrawAPI: ExcalidrawImperativeAPI;
+  username: string;
 }
 
 class Collab extends PureComponent<CollabProps, CollabState> {
@@ -142,7 +140,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.state = {
       errorMessage: null,
       dialogNotifiedErrors: {},
-      username: importUsernameFromLocalStorage() || "",
+      username: props.username,
       activeRoomLink: null,
     };
     this.portal = new Portal(this);

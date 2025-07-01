@@ -15,7 +15,7 @@ import {
   runTransaction,
   Bytes,
 } from "firebase/firestore";
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getBlob } from "firebase/storage";
 
 import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
 import type {
@@ -276,36 +276,32 @@ export const loadFilesFromFirebase = async (
 ) => {
   const loadedFiles: BinaryFileData[] = [];
   const erroredFiles = new Map<FileId, true>();
+  const storage = _getStorage();
 
   await Promise.all(
     [...new Set(filesIds)].map(async (id) => {
       try {
-        const url = `https://firebasestorage.googleapis.com/v0/b/${
-          FIREBASE_CONFIG.storageBucket
-        }/o/${encodeURIComponent(prefix.replace(/^\//, ""))}%2F${id}`;
-        const response = await fetch(`${url}?alt=media`);
-        if (response.status < 400) {
-          const arrayBuffer = await response.arrayBuffer();
+        // Use the Firebase Storage SDK
+        const fileRef = ref(storage, `${prefix}/${id}`);
+        const blob = await getBlob(fileRef);
+        const arrayBuffer = await blob.arrayBuffer();
 
-          const { data, metadata } = await decompressData<BinaryFileMetadata>(
-            new Uint8Array(arrayBuffer),
-            {
-              decryptionKey,
-            },
-          );
+        const { data, metadata } = await decompressData<BinaryFileMetadata>(
+          new Uint8Array(arrayBuffer),
+          {
+            decryptionKey,
+          },
+        );
 
-          const dataURL = new TextDecoder().decode(data) as DataURL;
+        const dataURL = new TextDecoder().decode(data) as DataURL;
 
-          loadedFiles.push({
-            mimeType: metadata.mimeType || MIME_TYPES.binary,
-            id,
-            dataURL,
-            created: metadata?.created || Date.now(),
-            lastRetrieved: metadata?.created || Date.now(),
-          });
-        } else {
-          erroredFiles.set(id, true);
-        }
+        loadedFiles.push({
+          mimeType: metadata.mimeType || MIME_TYPES.binary,
+          id,
+          dataURL,
+          created: metadata?.created || Date.now(),
+          lastRetrieved: metadata?.created || Date.now(),
+        });
       } catch (error: any) {
         erroredFiles.set(id, true);
         console.error(error);
